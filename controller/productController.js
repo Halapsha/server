@@ -2,6 +2,7 @@ const uuid = require('uuid')
 const path = require('path')
 const {Product, ProductInfo} = require('../models/models')
 const ApiError = require('../error/ApiError')
+const {Op} = require("sequelize");
 
 class ProductController {
     async create(req, res, next) {
@@ -21,7 +22,7 @@ class ProductController {
     }
 
     async getAll(req, res) {
-        let {typeId, limit, page} = req.query
+        let {name, typeId, limit, page} = req.query
         page = page || 1
         limit = limit || 12
         let offset = page * limit - limit
@@ -29,9 +30,14 @@ class ProductController {
         if (!typeId) {
             products = await Product.findAndCountAll({limit, offset})
         }
-        if (typeId) {
-            products = await Product.findAndCountAll({where: {typeId}, limit, offset})
+        if(typeId) {
+             products = await Product.findAndCountAll({where: {typeId}, limit, offset})
         }
+        if(name){
+            products = await Product.findAndCountAll({where:{ name:{[Op.like]: `${name}%`}}, limit, offset})
+        }
+
+
         return res.json(products)
     }
 
